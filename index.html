@@ -32,6 +32,9 @@
   const holidays = ["2026-05-25"];
   const endDateTime = new Date("June 10, 2026 15:36:00 PDT");
 
+  const dailyCutoffHour = 15;
+  const dailyCutoffMinute = 36;
+
   function formatDateLocal(date) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -44,6 +47,25 @@
     const isWeekend = day === 0 || day === 6;
     const isHoliday = holidays.includes(formatDateLocal(date));
     return !isWeekend && !isHoliday;
+  }
+
+  function getCountingStartDate(now) {
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const cutoffToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      dailyCutoffHour,
+      dailyCutoffMinute,
+      0
+    );
+
+    if (now >= cutoffToday) {
+      start.setDate(start.getDate() + 1);
+    }
+
+    return start;
   }
 
   function getRemainingSchoolDays(startDate, endDate) {
@@ -74,22 +96,31 @@
     }
 
     if (today === finalDay) {
-      mainOutput.innerText = "Final day countdown";
-      const timeLeft = endDateTime - now;
+      mainOutput.innerText = "Last day of school!";
 
-      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-      const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+      const timeLeft = endDateTime - now;
+      const totalMinutes = Math.floor(timeLeft / (1000 * 60));
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
       const seconds = Math.floor((timeLeft / 1000) % 60);
 
-      finalOutput.innerText = `${hours} hours, ${minutes} minutes, ${seconds} seconds left`;
+      if (timeLeft >= 1000 * 60 * 60) {
+        finalOutput.innerText = `${hours} hour${hours === 1 ? "" : "s"}, ${minutes} minute${minutes === 1 ? "" : "s"} remaining`;
+      } else {
+        finalOutput.innerText = `${minutes} minute${minutes === 1 ? "" : "s"}, ${seconds} second${seconds === 1 ? "" : "s"} remaining`;
+      }
+
       return;
     }
 
-    const daysLeft = getRemainingSchoolDays(now, endDateTime);
+    const countingStartDate = getCountingStartDate(now);
+    const daysLeft = getRemainingSchoolDays(countingStartDate, endDateTime);
+
     mainOutput.innerText =
       daysLeft === 1
-        ? "1 school day remaining"
+        ? "1 school day remaining!"
         : `${daysLeft} school days remaining`;
+
     finalOutput.innerText = "";
   }
 
