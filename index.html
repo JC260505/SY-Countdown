@@ -1,0 +1,98 @@
+<style>
+  .countdown-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    text-align: center;
+  }
+
+  #school-days-remaining {
+    font-family: monospace;
+    font-size: 2.8em;
+    color: #222;
+  }
+
+  #live-final-day {
+    font-family: monospace;
+    font-size: 2.2em;
+    color: #444;
+    margin-top: 10px;
+  }
+</style>
+
+<div class="countdown-wrapper">
+  <div>
+    <div id="school-days-remaining">Calculating school days remaining...</div>
+    <div id="live-final-day"></div>
+  </div>
+</div>
+
+<script>
+  const holidays = ["2026-05-25"];
+  const endDateTime = new Date("June 10, 2026 15:36:00 PDT");
+
+  function formatDateLocal(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function isInstructionalDay(date) {
+    const day = date.getDay();
+    const isWeekend = day === 0 || day === 6;
+    const isHoliday = holidays.includes(formatDateLocal(date));
+    return !isWeekend && !isHoliday;
+  }
+
+  function getRemainingSchoolDays(startDate, endDate) {
+    let count = 0;
+    const current = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const final = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+
+    while (current <= final) {
+      if (isInstructionalDay(current)) count++;
+      current.setDate(current.getDate() + 1);
+    }
+
+    return count;
+  }
+
+  function updateCountdown() {
+    const now = new Date();
+    const today = formatDateLocal(now);
+    const finalDay = formatDateLocal(endDateTime);
+
+    const mainOutput = document.getElementById("school-days-remaining");
+    const finalOutput = document.getElementById("live-final-day");
+
+    if (now >= endDateTime) {
+      mainOutput.innerText = "School's out!";
+      finalOutput.innerText = "";
+      return;
+    }
+
+    if (today === finalDay) {
+      mainOutput.innerText = "Final day countdown";
+      const timeLeft = endDateTime - now;
+
+      const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+      const minutes = Math.floor((timeLeft / (1000 * 60)) % 60);
+      const seconds = Math.floor((timeLeft / 1000) % 60);
+
+      finalOutput.innerText = `${hours} hours, ${minutes} minutes, ${seconds} seconds left`;
+      return;
+    }
+
+    const daysLeft = getRemainingSchoolDays(now, endDateTime);
+    mainOutput.innerText =
+      daysLeft === 1
+        ? "1 school day remaining"
+        : `${daysLeft} school days remaining`;
+    finalOutput.innerText = "";
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
